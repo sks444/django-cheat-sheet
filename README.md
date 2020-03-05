@@ -9,6 +9,9 @@
 - [Security](#security)
 - [Deployments](#deployments)
 - [Authentication](#authentication)
+- [Autherization](#authorization)
+- [Views](#views)
+- [Urls](#urls)
 
 ## Designing Models
 
@@ -106,6 +109,39 @@
     In the above example `on_delete` is set to `CASCADE` which means that delete all the Players in the team, when the team they are linked to gets deleted. But if it is set to `SET_NULL` it means that keep they players and set the `player.team` to `None` when the team is getting deleted.
 
 - Any changes in your models requires you to run `python manage.py makemigrations` and `python manage.py migrate`
+
+- Models should include all relevant domain/business logic as it's property or methods. For example for a player you might want to check if he is a captain or not:
+
+    ```python
+        class Player(models.Model):
+            name = models.CharField(max_length=100)
+
+            def is_captain(self):
+                if self is captain:
+                    return True
+                return False
+    ```
+
+- Blank and Null Fields:
+
+  - `Null` is database-related. Defines if a given database column will accept null values or not.
+
+  - `Blank` is validation-related. It will be used during forms validation, when calling form.is_valid().
+
+  - Do not use `null=True` for text/char based field. Otherwise, you will end up having two possible values for "no data" that is: `None` and `an empty` string. Having two possible values for "no data" is redundant The Django convention is to use the empty string, not NULL.
+
+    ```python
+        class Player(models.Model):
+            name = models.CharField(max_length=100)
+
+            # null=True is not required as `empty string` will be saved to the database.
+            bio = models.TextField(blank=True)
+
+            # here you may add `null=True`
+            birth_date = models.DateField(null=True, blank=True)
+    ```
+
+  - Do not use `null=True` or `blank=True` for `BooleanField`. It is better to specify default values for such fields. If you realise that the field can remain empty, you need `NullBooleanField`.
 
 ## Caching
 
