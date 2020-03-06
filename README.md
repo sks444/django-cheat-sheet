@@ -9,9 +9,7 @@
 - [Security](#security)
 - [Deployments](#deployments)
 - [Authentication](#authentication)
-- [Autherization](#authorization)
-- [Views](#views)
-- [Urls](#urls)
+- [Authorization](#authorization)
 
 ## Designing Models
 
@@ -143,13 +141,64 @@
 
   - Do not use `null=True` or `blank=True` for `BooleanField`. It is better to specify default values for such fields. If you realise that the field can remain empty, you need `NullBooleanField`.
 
+- [`Class Meta`](https://docs.djangoproject.com/en/3.0/ref/models/options/) can be used to set default order of a list of objects. E.g. if you want to list all players in alphabetical order this is how you do it:
+
+    ```python
+        class Player(models.Model):
+            name = models.CharField(max_length=100)
+
+            class Meta:
+                ordering = ['-name']
+    ```
+
+    Now `Player.objects.all()` will return queryset of players in an alphabetical order but [ordering is expensive](https://docs.djangoproject.com/en/3.0/topics/db/optimization/#don-t-order-results-if-you-don-t-care) so you should not use it when you don't need it.
+
+    You might want to add an index to your database which may help to improve ordering performance:
+
+    ```python
+        class Player(models.Model):
+            name = models.CharField(max_length=100)
+
+            class Meta:
+                indexes = [models.Index(fields=['name'])]
+                ordering = ['-name']
+    ```
+
 ## Caching
 
 - ToDo
 
 ## Database optimization
 
-- ToDo
+- Use `QuerySet.explain()` to understand how specific QuerySets are executed by your database. Also checkout [django-debug-toolbar](https://github.com/jazzband/django-debug-toolbar/)
+
+- Use indexes to fields that you frequently query by using `filter()`, `exclude()`, `order_by` etc.
+
+- Use indexed field to query:
+
+    ```python
+        # Faster
+        player = Player.objects.get(id=10)
+
+        # Slower. Assuming the name field is not indexed.
+        player = Player.objects.get(name='Krishna')
+    ```
+
+- Do not perform operations on all the objects all the time, use `filter()` and `exclude()` when needed.
+
+- [Use iterator](https://docs.djangoproject.com/en/3.0/ref/models/querysets/#iterator) when dealing with `QuerySet` with large amount of data that you only need to access once.
+
+- Use [`F expression`](https://docs.djangoproject.com/en/3.0/ref/models/expressions/#f-expressions) to update fields in the same model.
+
+    ```python
+    # Don't
+    for player in Player.objects.all():
+        player.rating += 1
+        player.save()
+
+    # Do
+    Entry.objects.update(rating=F('rating') + 1)
+    ```
 
 ## Security
 
@@ -160,5 +209,9 @@
 - ToDo
 
 ## Authentication
+
+- ToDo
+
+## Authorization
 
 - ToDo
