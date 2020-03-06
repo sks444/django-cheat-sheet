@@ -4,12 +4,13 @@
 ## Contents
 
 - [Designing Models](#designing-models)
-- [Caching](#caching)
 - [Database optimization](#database-optimization)
+- [Caching](#caching)
 - [Security](#security)
-- [Deployments](#deployments)
 - [Authentication](#authentication)
 - [Authorization](#authorization)
+- [Deployments](#deployments)
+- [Testing](#testing)
 
 ## Designing Models
 
@@ -164,10 +165,6 @@
                 ordering = ['-name']
     ```
 
-## Caching
-
-- ToDo
-
 ## Database optimization
 
 - Use `QuerySet.explain()` to understand how specific QuerySets are executed by your database. Also checkout [django-debug-toolbar](https://github.com/jazzband/django-debug-toolbar/)
@@ -184,7 +181,7 @@
         player = Player.objects.get(name='Krishna')
     ```
 
-- Do not perform operations on all the objects all the time, use `filter()` and `exclude()` when needed.
+- Use `filter()` and `exclude()` when needed. In case you want to perform some operation on only certain number of Players.
 
 - [Use iterator](https://docs.djangoproject.com/en/3.0/ref/models/querysets/#iterator) when dealing with `QuerySet` with large amount of data that you only need to access once.
 
@@ -197,14 +194,96 @@
         player.save()
 
     # Do
-    Entry.objects.update(rating=F('rating') + 1)
+    Player.objects.update(rating=F('rating') + 1)
     ```
 
-## Security
+- Use `QuerySet.count()` if you only want the count, rather than `len(queryset)`.
+
+- Use `QuerySet.exists()` if you only want to find out if at least one result exists, rather than `if queryset`
+
+- Use `delete()` and `update()` when needed.:
+
+  ```python
+     # bulk update
+     Player.objects.filter(name='Krishna').update(rating=10)
+
+     # bulk delete
+     Player.objects.filter(name='Krishna').delete()
+  ```
+
+- Use `ForeignKey` values directly
+
+    ```python
+       player = Player.objects.get(id=1)
+
+       # Don't
+       team_name = player.team.name
+
+       # Do
+       team_name = player.team_name
+    ```
+
+- Don't [order results if not needed](https://docs.djangoproject.com/en/3.0/topics/db/optimization/#don-t-order-results-if-you-don-t-care).
+
+- Use [Bulk methods](https://docs.djangoproject.com/en/3.0/topics/db/optimization/#use-bulk-methods):
+  - `bulk_create` Suppose that you have to create a lot of Players:
+
+    ```python
+
+        # Creating all the players at once is better
+        Player.objects.bulk_create([
+            Player(name='dummy player 1'),
+            Player(headline='dummy player 2'),
+            ...
+        ])
+
+        # Than creating one by one
+        Player.objects.create(name='dummy player 1')
+        Player.objects.create(name='dummy player 2')
+        ...
+    ```
+
+  - `bulk_update` You can also update in bulk:
+
+    ```python
+        players = Player.objects.bulk_create([
+            Player(name='dummy player 1'),
+            Player(headline='dummy player 2'),
+            ...
+        ])
+
+        players[0].rating = 4
+        players[1].rating = 3
+        ...
+
+        # Updating all the players rating at once is better than
+        Player.objects.bulk_update(players, ['rating'])
+
+        # Updating them one by one
+        players[0].save()
+    ```
+
+- Use [`select_related`](https://docs.djangoproject.com/en/3.0/ref/models/querysets/#select-related) and [`preftech_related`](https://docs.djangoproject.com/en/3.0/ref/models/querysets/#prefetch-related): These methods are used to improve speed by minimising the number of database query when dealing with related objects.
+
+  - `select_related` is used when you're dealing with ForeignKey and OneToOne Relations. Use when you want to get detail of one related object.
+
+  ```python
+    # Each player will be related to a team so why not get the team information also
+    players = Player.objects.all().select_releted('team')
+  ```
+
+  - `prefetch_related` is used when you're dealing with ManyToMany Relations. Use when you want to get details of many related object.
+
+  ```python
+    # Each player can belong to multiple groups so why not get those groups also.
+    players = Player.objects.all().prefecth_relted('groups')
+  ```
+
+## Caching
 
 - ToDo
 
-## Deployments
+## Security
 
 - ToDo
 
@@ -215,3 +294,11 @@
 ## Authorization
 
 - ToDo
+
+## Deployments
+
+- ToDo
+
+## Testing
+
+- Todo
