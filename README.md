@@ -1,16 +1,12 @@
 # django-cheat-sheet
 > A cheat-sheet to make your Django apps better.
 
+This reposetory contains my notes on Django concepts which I learn from various sources.
+
 ## Contents
 
 - [Designing Models](#designing-models)
 - [Database optimization](#database-optimization)
-- [Caching](#caching)
-- [Security](#security)
-- [Authentication](#authentication)
-- [Authorization](#authorization)
-- [Deployments](#deployments)
-- [Testing](#testing)
 
 ## Designing Models
 
@@ -142,7 +138,8 @@
 
   - Do not use `null=True` or `blank=True` for `BooleanField`. It is better to specify default values for such fields. If you realise that the field can remain empty, you need `NullBooleanField`.
 
-- [`Class Meta`](https://docs.djangoproject.com/en/3.0/ref/models/options/) can be used to set default order of a list of objects. E.g. if you want to list all players in alphabetical order this is how you do it:
+- [`Class Meta`](https://docs.djangoproject.com/en/3.0/ref/models/options/)
+  - can be used to set default order of a list of objects. E.g. if you want to list all players in alphabetical order this is how you do it:
 
     ```python
         class Player(models.Model):
@@ -164,6 +161,8 @@
                 indexes = [models.Index(fields=['name'])]
                 ordering = ['-name']
     ```
+
+  - can also be used to set abstract model by setting `abstract=True` in the `meta class`. This model will then not be used to create any database table. Instead, when it is used as a base class for other models, its fields will be added to those of the child class.
 
 ## Database optimization
 
@@ -278,27 +277,3 @@
     # Each player can belong to multiple groups so why not get those groups also.
     players = Player.objects.all().prefecth_relted('groups')
   ```
-
-## Caching
-
-- ToDo
-
-## Security
-
-- ToDo
-
-## Authentication
-
-- ToDo
-
-## Authorization
-
-- ToDo
-
-## Deployments
-
-- ToDo
-
-## Testing
-
-- Todo
