@@ -7,6 +7,7 @@ This reposetory contains my notes on Django concepts which I learn from various 
 
 - [Designing Models](#designing-models)
 - [Database optimization](#database-optimization)
+- [Managers](#managers)
 
 ## Designing Models
 
@@ -277,3 +278,57 @@ This reposetory contains my notes on Django concepts which I learn from various 
     # Each player can belong to multiple groups so why not get those groups also.
     players = Player.objects.all().prefecth_relted('groups')
   ```
+
+## Managers
+
+- Managers are the interface through which database query operations are provided to Django models.
+
+- At least one `Manager` should exist for every model in a Django application.
+
+- `objects` is the default manager that is added to every model.
+
+- You can define a manager for a model by calling `models.Manager()`:
+
+    ```python
+    from django.db import models
+
+    class Player(models.Model):
+        #...
+        people = models.Manager()
+    ```
+
+    Now you can do `Player.people.all()` instead of `Player.objects.all()`
+
+- You can also have custom managers:
+  - Helpful when you need extra methods to your manager:
+
+    ```python
+    class CaptainManager(models.Manager):
+        def get_captain(self):
+            return captain
+
+    class Player(models.Model):
+        ...
+        objects = PollManager()
+    ```
+
+    Now you can do `Player.objects.get_captain()` with all the other methods on `objects`(`.all()`, `filter()`..etc.)
+
+  - Helpful in modifying the intial queryset that manager returns:
+
+   ```python
+    class HighRatedPlayerManager(models.Manager):
+        def get_queryset(self):
+            return super().get_queryset().filter(rating='5')
+
+    class Player(models.Model):
+        title = models.CharField(max_length=100)
+        author = models.CharField(max_length=50)
+
+        objects = models.Manager()
+        five_stars = HighRatedPlayerManager()
+   ```
+
+   With `Player.objects.all()` you can get all the players but with `Player.five_starts.all()` you only get players with rating 5.
+
+## Middleware
