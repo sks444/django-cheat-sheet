@@ -8,6 +8,7 @@ This reposetory contains my notes on Django concepts which I learn from various 
 - [Designing Models](#designing-models)
 - [Database optimization](#database-optimization)
 - [Managers](#managers)
+- [Middleware](#middleware)
 
 ## Designing Models
 
@@ -332,3 +333,40 @@ This reposetory contains my notes on Django concepts which I learn from various 
    With `Player.objects.all()` you can get all the players but with `Player.five_starts.all()` you only get players with rating 5.
 
 ## Middleware
+
+- Middleware are hooks to modify Django request and response object.
+  - You can use middleware to modify the request object which is sent to the view. E.g. every time you do `request.user` you get the user object. This functionality is provided via `AuthenticationMiddleware` which modifies the request object to add user to the request before it is sent to the view.
+
+  - You can also use middleware to modify the response object which is returned from the view.
+
+  - Ordering of middlewares in your settings is very important. While processing request object middlware works from top to bottom and while processing response object middleware works from bottom to top.
+
+  - Think of it like an onion where your view is the core of the onion. So when request comes, it will be passed through each of middlware from top to bottom. And then the view will be executed. After that the response of the view will be passed through each of the middleware from bottom to top.
+  
+  - Here is how you define a custom middleware:
+
+  ```python
+  class SimpleMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+        # One-time configuration and initialization.
+
+    def __call__(self, request):
+        # Code to be executed for each request before
+        # the view (and later middleware) are called.
+
+        response = self.get_response(request)
+
+        # Code to be executed for each request/response after
+        # the view is called.
+
+        return response
+  ```
+
+  To modify the request do something before the line `response = self.get_response(request)` and then that request will be passed to the next middleware(from top to bottom) or if no middleware is there then it will be passed to your views.
+
+  Similarly to modify the response do something after the line `response = self.get_response(request)` and then your modified response will be passed to the next middleware from bottom to top.
+
+  - To activate a custom middleware you need to add it in your settings file in middleware section.
+
+  - To know more about ordering of a middlware checkout [1](https://docs.djangoproject.com/en/3.0/ref/middleware/#middleware-ordering).
