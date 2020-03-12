@@ -9,6 +9,7 @@ This reposetory contains my notes on Django concepts which I learn from various 
 - [Database optimization](#database-optimization)
 - [Managers](#managers)
 - [Middleware](#middleware)
+- [Signals](#signals)
 
 ## Designing Models
 
@@ -370,3 +371,43 @@ This reposetory contains my notes on Django concepts which I learn from various 
   - To activate a custom middleware you need to add it in your settings file in middleware section.
 
   - To know more about ordering of a middlware checkout [1](https://docs.djangoproject.com/en/3.0/ref/middleware/#middleware-ordering).
+
+## Signals
+
+- The Django Signals is a strategy to allow decoupled applications to get notified when certain events occur.
+  - Let's say you want to send some message to slack everytime instance of a model is updated, but there are several place in your code base that this model can be updated. Now you don't want to call the send_message method everytime you're updating the model. You can do that via a signal hook which will get triggered every time this specific model's save method is triggered.
+
+  - Signals are often misused, here are few tips to verify that you really need a signal:
+    - Use when many pieces of the applications are interested in the same event.
+    - Use when you are working with decoupled applications:
+      - Django core model.
+      - A model defined by third party app.
+    - Don't use signals when you have both sender and reciever at one place.
+      - Don't use signals in your views to send email.
+
+  - Here is how you can implement signals in your django application:
+
+    - Let's say I want to send a message everytime my `User` model is getting updated.
+
+        ```python
+        # Put this in your app's `signals.py`
+        @receiver(post_save, sender=User)
+        def send_message_to_slack(sender, **kwargs):
+            send_message(sender)
+
+        # Now you must ensure that the receiver code is imported when the projects is started
+        # in your apps.py do
+
+        class ProfileConfig(AppConfig):
+            name = 'myproject.profile'
+
+            def ready(self):
+                import myproject.profile.signals # noqa
+
+        # And in your __init__.py put:
+        # Note that this is not required if you're already referring to your AppConfig
+        # in the `INSTALLED_APPS` settings.
+        default_app_config = 'myproject.profile.apps.ProfileConfig'
+        ```
+
+    - In the above example we used Django's built-in signal `post_save`, [there are many more](https://docs.djangoproject.com/en/3.0/topics/signals/) built-in signals that you can use and also define your own if needed.
