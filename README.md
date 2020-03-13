@@ -10,6 +10,7 @@ This reposetory contains my notes on Django concepts which I learn from various 
 - [Managers](#managers)
 - [Middleware](#middleware)
 - [Signals](#signals)
+- [Class-based Views](#class-based-views)
 
 ## Designing Models
 
@@ -411,3 +412,6 @@ This reposetory contains my notes on Django concepts which I learn from various 
         ```
 
     - In the above example we used Django's built-in signal `post_save`, [there are many more](https://docs.djangoproject.com/en/3.0/topics/signals/) built-in signals that you can use and also define your own if needed.
+
+## Class-based Views
+
