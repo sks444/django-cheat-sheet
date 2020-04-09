@@ -10,7 +10,7 @@ This reposetory contains my notes on Django concepts which I learn from various 
 - [Managers](#managers)
 - [Middleware](#middleware)
 - [Signals](#signals)
-- [Class-based Views](#class-based-views)
+- [Security](#security)
 
 ## Designing Models
 
@@ -413,5 +413,44 @@ This reposetory contains my notes on Django concepts which I learn from various 
 
     - In the above example we used Django's built-in signal `post_save`, [there are many more](https://docs.djangoproject.com/en/3.0/topics/signals/) built-in signals that you can use and also define your own if needed.
 
-## Class-based Views
+## Security
 
+- **Know your version and use a secure one**
+
+    What version of Django are you using? The choice of version determines what known vulnerabilities are present, and potentially exploitable, in your application. Have a look at the archive of all the [security issues](https://docs.djangoproject.com/en/3.0/releases/security/) and closely follow Django's security release cycle.
+
+- **Throttle user authentications**
+
+    Django provides a lot of security features baked in, but the authentication system does not inherently protect against brute force attacks. It is important to write your own code to fix this, or use one of many open source solutions. (Like [django-defender](https://github.com/jazzband/django-defender))
+
+- **Use raw queries and custom SQL with caution**
+
+    While it may be tempting to write raw sql queries and custom SQL, doing so may open the door for an attack. A user attempting to perform an sql injection(execute arbitrary sql on a database) is going to find it much harder, if you always use the ORM.
+
+- **Watch you headers**
+
+    When the site is served via https, the referer request header is utilized by Django to help prevent cross site request forgery(CSRF) attacks. If you're too strict with your referer-policy header, you disable the functionality of Django's CSRF protection. In the end you need to weigh the privacy benefits of using a strict referer-policy header with the benefits of the CSRF protection.
+
+- **Be careful with your cookies**
+
+    Some cookies are more secure than others -- the default cookie behavior is to connect over http. However, since we already established that you need to use https, you want to make sure your cookies are only being sent over https as well. To prevent leaking cookies, be sure to set your SESSION_COOKIE_SECURE and CSRF_COOKIE_SECURE settings to True.
+
+- **Carefully handle user uploads**
+
+    If your web application allows users to upload files, you're opening yourself to an attack vector and the upload logic should therefore be handled carefully. It is important to validate all uploaded files to be sure they are what you expect.
+
+- **Understand all your dependencies**
+
+    Always keep checking at the release cycle of your dependencies and upgrading them accordingly. If one of your dependencies package is not maintained for a long time, look for alternatives or help maintaing the package.
+
+- **Change the admin URL**
+
+    Change the default admin URL from `/admin/` to something else. This is so common anyone will be looking for `youdomain/admin` and trying brute force attacks.
+
+    ```python
+        urlpatterns = [
+            path('my-special-admin-login/', admin.site.urls),
+        ]
+    ```
+
+- **Never run `debug=True` in Production.**
